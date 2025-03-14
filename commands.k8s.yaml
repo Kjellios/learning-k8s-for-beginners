@@ -1,6 +1,0 @@
-kubectl create -f replicaset-definition.k8s.yaml # Create a replicaset
-kubectl get replicaset # Get replicaset
-kubectl delete replicaset myapp-replicaset # Delete a replicaset
-kubectl replace -f replicaset-definition.k8s.yaml # Replace a replicaset
-kubectl scale --replicas=6 -f replicaset-definition.k8s.yaml # Scale a replicaset
-kubectl get pods # Get pods
