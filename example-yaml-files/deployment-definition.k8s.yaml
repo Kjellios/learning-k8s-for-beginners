@@ -20,3 +20,21 @@ spec:
   selector:
     matchLabels:
       type: front-end
+
+
+# kubectl create -f deployment-definition.k8s.yaml
+    # deployment.apps/myapp-deployment created
+
+# kubectl get deployment
+    # NAME              READY   UP-TO-DATE   AVAILABLE   AGE
+    # myapp-deployment   3         3            3          3m
+
+# kubectl get replicaset
+    # NAME                        DESIRED   CURRENT   READY   AGE
+    # myapp-deployment-7b4q2       3         3         3       3m
+
+# kubectl get pods
+    # NAME                             READY   STATUS    RESTARTS   AGE
+    # myapp-deployment-7b4q2           1/1     Running   0          3m
+    # myapp-deployment-8b4q2           1/1     Running   0          3m
+    # myapp-deployment-2b5q2           1/1     Running   0          3m
