@@ -1,0 +1,180 @@
+### **Lessons from Deploying the Voting App in Kubernetes**
+
+#### **1. General Workflow for Future Deployments**
+Follow this **step-by-step order** when deploying an app like this in Kubernetes:
+
+1. **Verify Minikube/Docker is running**
+   ```sh
+   minikube start
+   minikube status
+   ```
+2. **Apply core deployments (in order)**
+   ```sh
+   kubectl apply -f redis-deploy.yaml
+   kubectl apply -f postgres-deploy.yaml
+   kubectl apply -f voting-app-deploy.yaml
+   kubectl apply -f worker-app-deploy.yaml
+   kubectl apply -f result-app-deploy.yaml
+   ```
+3. **Apply services**
+   ```sh
+   kubectl apply -f redis-service.yaml
+   kubectl apply -f postgres-service.yaml
+   kubectl apply -f voting-app-service.yaml
+   kubectl apply -f worker-app-service.yaml
+   kubectl apply -f result-app-service.yaml
+   ```
+4. **Check if everything is running**
+   ```sh
+   kubectl get pods,svc
+   ```
+5. **If a service isn't reachable, try port-forwarding**  
+   *(See Section 3 for details.)*
+
+---
+
+#### **2. Debugging Kubernetes Issues**
+💡 **Check if everything is running properly**
+```sh
+kubectl get all
+kubectl get pods
+kubectl get svc
+kubectl describe pod <pod-name>
+kubectl logs <pod-name>
+```
+- If a pod is **crashing**, check logs:  
+  ```sh
+  kubectl logs <pod-name>
+  ```
+- If a pod is **stuck in `Pending`**, check node issues:
+  ```sh
+  kubectl describe node <node-name>
+  ```
+- If the **service is unreachable**, check endpoints:
+  ```sh
+  kubectl get endpoints
+  ```
+
+💡 **Common Fixes**
+- If something is stuck in `CrashLoopBackOff`:  
+  ```sh
+  kubectl delete pod <pod-name>
+  kubectl apply -f <pod-config>.yaml
+  ```
+- If a service isn't responding:  
+  ```sh
+  kubectl port-forward svc/<service-name> 8080:80
+  ```
+
+---
+
+#### **3. Port Forwarding in Minikube (Docker)**
+Since Minikube is running inside **Docker**, direct port exposure doesn’t work like in a normal Kubernetes cluster. To access services, use **port forwarding**.
+
+##### **Step 1: Start Minikube**
+Ensure Minikube is running:  
+```sh
+minikube start
+```
+
+##### **Step 2: Verify Kubernetes Resources**
+Check if your services are running:  
+```sh
+kubectl get all
+```
+If the service is missing, reapply the configuration:  
+```sh
+kubectl apply -f voting-app-service.yaml
+```
+
+##### **Step 3: Kill Any Conflicting Processes**
+Ensure no old Minikube or `kubectl` processes are running:  
+```sh
+pkill -9 -f "minikube"
+pkill -9 -f "kubectl"
+```
+Verify Kubernetes resources are still available:  
+```sh
+kubectl get all
+```
+
+##### **Step 4: Start Port Forwarding**
+To access the Voting App:
+```sh
+kubectl port-forward svc/voting-service 8080:80
+```
+To access the Result App:
+```sh
+kubectl port-forward svc/result-service 8081:80
+```
+Leave this command running.
+
+##### **Step 5: Access the Service**
+Open a new terminal and test:
+```sh
+curl http://localhost:8080
+```
+If successful, this should return a response from the Voting App.
+
+##### **Step 6: Stop Port Forwarding**
+Press **CTRL + C** to stop port forwarding.  
+If running in the background, find the process:
+```sh
+ps aux | grep kubectl
+```
+Kill it:
+```sh
+pkill -9 -f "kubectl"
+```
+This ensures a clean state for future port forwarding.
+
+---
+
+#### **4. Namespaces (If Used)**
+If using a namespace (e.g., `vote`), always remember:
+```sh
+kubectl get all -n vote
+kubectl apply -f voting-app-service.yaml --namespace=vote
+kubectl port-forward svc/voting-service 8080:80 --namespace=vote
+```
+If something is broken, **delete the namespace and start fresh**:
+```sh
+kubectl delete namespace vote
+kubectl create namespace vote
+```
+
+---
+
+#### **5. Scaling the App**
+At some point, you added **replicas** for better load balancing.  
+To scale up a deployment:
+```sh
+kubectl scale deployment voting-app-deploy --replicas=3
+kubectl get deployments
+```
+
+---
+
+#### **6. Cleaning Up**
+When you need to **reset everything**:
+```sh
+kubectl delete all --all
+pkill -9 -f "kubectl"
+pkill -9 -f "minikube"
+```
+Or just delete and restart the database:
+```sh
+kubectl delete pod postgres-pod
+kubectl apply -f postgres-pod.yaml
+```
+
+---
+
+#### **Final Thoughts for Future You**
+- If something is **not working**, check:
+  1. **Pods (`kubectl get pods`)**
+  2. **Logs (`kubectl logs <pod-name>`)**
+  3. **Service Endpoints (`kubectl get endpoints`)**
+- **Port-forwarding is required** for Minikube in Docker.
+- **Scaling the app** helps prevent load issues, even in Minikube.
+- **Namespaces can be useful, but also annoying**—reset them if things act weird.
