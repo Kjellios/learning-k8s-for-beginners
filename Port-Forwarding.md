@@ -21,10 +21,6 @@ Kill any running Minikube processes:
 ```bash
 pkill -9 -f "minikube"
 ```
-Check for any active `kubectl` processes:  
-```bash
-ps aux | grep kubectl
-```
 Terminate any lingering `kubectl` processes:  
 ```bash
 pkill -9 -f "kubectl"
