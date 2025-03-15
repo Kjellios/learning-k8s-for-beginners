@@ -13,7 +13,7 @@ kubectl get all
 ```
 If the service is missing, reapply the configuration:  
 ```bash
-kubectl apply -f service-definition.k8s.yaml
+kubectl apply -f service.yaml
 ```
 
 #### **Step 3: Ensure No Conflicting Processes**
