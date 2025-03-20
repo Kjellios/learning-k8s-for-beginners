@@ -1,0 +1,14 @@
+# Kubernetes Commands
+
+- Create a replicaset: |
+  ```sh
+  kubectl create -f replicaset-definition.k8s.yaml
+  ```
+
+commands:
+  - kubectl create -f replicaset-definition.k8s.yaml # Create a replicaset
+  - kubectl get replicaset # Get information about the replicaset
+  - kubectl delete replicaset myapp-replicaset # Delete a replicaset (pods will be deleted unless --cascade=orphan is used)
+  - kubectl replace -f replicaset-definition.k8s.yaml # Update the replicaset with a new definition
+  - kubectl scale --replicas=6 -f replicaset-definition.k8s.yaml # Scale a replicaset to ensure the desired number of pod replicas
+  - kubectl get pods # Get the status of the pods
